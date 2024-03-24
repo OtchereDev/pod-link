@@ -40,4 +40,35 @@
 
 * {
   font-family: Larsseit, sans-serif;
+  color: #1b1f23;
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .sliding {
+    animation: 37s linear infinite normal none running slide;
+    animation-delay: 2s;
+    width: fit-content;
+    will-change: transform;
+  }
+
+  .sliding:hover {
+    animation-play-state: paused;
+  }
+
+  @keyframes slide {
+    0% {
+      transform: translate3d(0, 0, 0);
+    }
+    100% {
+      transform: translate3d(calc(-50%), 0, 0);
+    }
+  }
 }

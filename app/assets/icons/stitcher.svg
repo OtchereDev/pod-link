@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 48 48">
+    <defs>
+        <clipPath id="a">
+            <path
+                d="M5.0494,42.9506C1.3663,39.2675,0,33.2675,0,24S1.3663,8.7325,5.0494,5.0494,14.7325,0,24,0,39.2675,1.3663,42.9506,5.0494,48,14.7325,48,24s-1.3663,15.2675-5.0494,18.9506S33.2675,48,24,48,8.7325,46.6337,5.0494,42.9506Z"
+                fill="none" />
+        </clipPath>
+    </defs>
+    <title>icon-stitcher</title>
+    <g clip-path="url(#a)">
+        <rect width="48" height="48" />
+        <rect y="17.6911" width="8.4553" height="15.2195" fill="#3291c6" />
+        <rect x="9.8211" y="14.9593" width="8.5854" height="16.9106" fill="#621e69" />
+        <rect x="19.8374" y="16.3902" width="8.5203" height="17.4959" fill="#fbc700" />
+        <rect x="29.6585" y="13.7886" width="8.5854" height="18.0813" fill="#ed8b01" />
+        <rect x="39.6098" y="16.9106" width="8.3902" height="13.8537" fill="#c5361e" />
+    </g>
+</svg>
