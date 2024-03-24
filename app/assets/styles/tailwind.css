@@ -43,6 +43,10 @@
   color: #1b1f23;
 }
 
+p p {
+  color: inherit;
+}
+
 @layer utilities {
   .no-scrollbar::-webkit-scrollbar {
     display: none;
