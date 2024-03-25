@@ -1,9 +1,25 @@
+import { useParams } from "@remix-run/react";
 import { Facebook, Twitter } from "~/assets/icons/icons";
+import { IPodcast } from "~/types/index.types";
 
 export default function Share({
   isOpen,
   toggleShare,
-}: Readonly<{ isOpen?: boolean; toggleShare: () => void }>) {
+  podcast,
+  origin,
+}: Readonly<{
+  isOpen?: boolean;
+  toggleShare: () => void;
+  podcast: IPodcast;
+  origin: string;
+}>) {
+  const part = origin.split("/").slice(-1)[0];
+  const { podcastId } = useParams();
+  const link = `${part}/${podcastId}`;
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(link);
+  };
   return (
     <div
       className={`right-0 top-full w-full max-w-[423px] ${isOpen ? "absolute" : "hidden"}`}
@@ -31,18 +47,21 @@ export default function Share({
         <div className="mt-2 grid grid-cols-[96px,auto] items-center gap-5">
           <img
             className="h-96px w-[96px] flex-1 rounded-xl"
-            src="https://d3t3ozftmdmh3i.cloudfront.net/production/podcast_uploaded/34510591/34510591-1668985643962-0a01031ddd6e2.jpg"
+            src={podcast.image}
             alt="icon"
           />
 
           <div>
-            <p className=" font-thin">Bertha Kikie</p>
-            <p className="text-lg font-semibold">Kikie’s_Tales</p>
+            <p className=" font-thin">{podcast.author}</p>
+            <p className="text-lg font-semibold">{podcast.title}</p>
           </div>
         </div>
         <div className="mt-5 flex justify-between">
-          <button className="flex gap-2 rounded-full bg-[#db70fc] px-5 py-2.5 font-semibold">
-            <p>pod.link/1676639905</p>
+          <button
+            onClick={copyToClipboard}
+            className="flex gap-2 rounded-full bg-[#db70fc] px-5 py-2.5 font-semibold"
+          >
+            <p className={"line-clamp-1 max-w-[90%]"}>{link}</p>
             <p className="font-bold">COPY</p>
           </button>
 

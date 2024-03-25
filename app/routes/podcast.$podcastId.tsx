@@ -1,20 +1,20 @@
-import { Link, useLoaderData, useLocation, useParams } from "@remix-run/react";
+import { Link, useLoaderData, useParams } from "@remix-run/react";
 import { useState } from "react";
-import { json, LoaderFunctionArgs } from "@remix-run/node";
+import { json, LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 
 import http from "~/helper/http";
 import { IEpisode, IPodcast } from "~/types/index.types";
+import { formatDate } from "~/helper/formatTime";
 
 import { SearchIcon } from "~/assets/icons/icons";
-
 import Share from "~/components/details/Share";
 import Search from "~/components/details/Search";
-import { formatDate } from "~/helper/formatTime";
 import { Icons } from "~/constant/socials";
 import MusicBar from "~/components/details/MusicBar";
 
-export async function loader({ params }: LoaderFunctionArgs) {
+export async function loader({ params, request }: LoaderFunctionArgs) {
   const podcastId = params.podcastId;
+  const url = new URL(request.url);
 
   try {
     const response = await http.get<{ feed: IPodcast }>(
@@ -29,13 +29,23 @@ export async function loader({ params }: LoaderFunctionArgs) {
     }>(`/episodes/byfeedid?id=${podcastId}&pretty`);
     const episodes = episodeRes.data.items;
 
-    return json({ podcast, episodes });
+    return json({ podcast, episodes, origin: url.origin });
   } catch (error: any) {
     console.log(error);
   }
 
-  return json({ podcast: null, episodes: [] });
+  return json({ podcast: null, episodes: [], origin: url.origin });
 }
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+  return [
+    { title: data?.podcast?.title ?? "" },
+    {
+      name: "description",
+      content: `You are listening to ${data?.podcast?.title}`,
+    },
+  ];
+};
 
 export default function Index() {
   const { podcastId } = useParams();
@@ -44,7 +54,7 @@ export default function Index() {
   const [openShare, setOpenShare] = useState(false);
   const [openSearch, setOpenSearch] = useState(false);
 
-  const { podcast, episodes } = useLoaderData<typeof loader>();
+  const { podcast, episodes, origin } = useLoaderData<typeof loader>();
 
   const toggleShare = () => {
     setOpenShare((iso) => !iso);
@@ -83,7 +93,12 @@ export default function Index() {
           </button>
         </div>
 
-        <Share isOpen={openShare} toggleShare={toggleShare} />
+        <Share
+          isOpen={openShare}
+          toggleShare={toggleShare}
+          podcast={podcast as IPodcast}
+          origin={origin}
+        />
       </nav>
       <Search toggleOpen={toggleSearch} isOpen={openSearch} />
 
@@ -123,7 +138,10 @@ export default function Index() {
           <h4 className="mt-4 text-lg font-semibold">Episodes</h4>
           <div>
             {episodes.map((episode) => (
-              <div className="mt-4 grid w-[90%] grid-cols-[40px,auto] items-start lg:mt-4 lg:gap-3">
+              <div
+                key={episode?.id}
+                className="mt-4 grid w-[90%] grid-cols-[40px,auto] items-start lg:mt-4 lg:gap-3"
+              >
                 <Link to={`?selected=${episode?.id}`}>
                   <button className="mx-auto" onClick={toggleFullScreen}>
                     <svg
