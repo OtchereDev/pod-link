@@ -54,7 +54,7 @@ export default function Index() {
           {["loading", "submitting"].includes(search.state) ? (
             <p className="mt-3 text-center">Searching....</p>
           ) : null}
-          <div className="mx-auto max-h-[90%] max-w-[928px] overflow-scroll px-2 py-5 lg:p-10 ">
+          <div className="no-scrollbar mx-auto max-h-[90%] max-w-[928px] overflow-scroll px-2 py-5 lg:p-10 ">
             {search.data?.podcasts.map((podcast) => (
               <div key={podcast.id} className="mb-4 flex items-center gap-4">
                 <img
