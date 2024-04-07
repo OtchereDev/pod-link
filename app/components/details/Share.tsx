@@ -47,13 +47,13 @@ export default function Share({
         <div className="mt-2 grid grid-cols-[96px,auto] items-center gap-5">
           <img
             className="h-96px w-[96px] flex-1 rounded-xl"
-            src={podcast.image}
+            src={podcast?.image}
             alt="icon"
           />
 
           <div>
-            <p className=" font-thin">{podcast.author}</p>
-            <p className="text-lg font-semibold">{podcast.title}</p>
+            <p className=" font-thin">{podcast?.author}</p>
+            <p className="text-lg font-semibold">{podcast?.title}</p>
           </div>
         </div>
         <div className="mt-5 flex justify-between">

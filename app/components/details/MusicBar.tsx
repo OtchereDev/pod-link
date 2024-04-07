@@ -19,32 +19,25 @@ export default function MusicBar({
   toggleOpen,
   episodes,
   podcast,
-}: {
+}: Readonly<{
   isOpen: boolean;
   toggleOpen: () => void;
   episodes: Array<IEpisode>;
   podcast: IPodcast;
-}) {
-  const [isPlaying, setIsPlaying] = useState(false);
+}>) {
+  const audioPlayer = useRef<HTMLAudioElement | null>(null);
+  const trackPlane = useRef<HTMLDivElement | null>(null);
+  const tracker = useRef<HTMLDivElement | null>(null);
+
   const [currentTime, setCurrentTime] = useState(0);
   const [searchParams, setSearchParams] = useSearchParams();
   const selected = searchParams.get("selected");
   const selectedEpisode = episodes.find((p) => p?.id.toString() == selected);
 
-  const audioPlayer = useRef<HTMLAudioElement | null>(null);
-  const trackPlane = useRef<HTMLDivElement | null>(null);
-  const tracker = useRef<HTMLDivElement | null>(null);
-
-  const playPause = () => {
-    if (!audioPlayer.current) return;
+  const setSRC = () => {
+    if (!audioPlayer.current || !selectedEpisode) return;
     const player = audioPlayer.current;
-    if (isPlaying) {
-      player.pause();
-      setIsPlaying(false);
-    } else {
-      player.play();
-      setIsPlaying(true);
-    }
+    player.src = selectedEpisode.enclosureUrl;
   };
 
   const forwardSeek = () => {
@@ -57,8 +50,19 @@ export default function MusicBar({
     audioPlayer.current.currentTime -= 15;
   };
 
-  const openSmallBar = () => {
-    if (!isPlaying) playPause();
+  const listPlayer = (id: string) => {
+    setSearchParams((prev) => {
+      prev.set("selected", id);
+      return prev;
+    });
+    playPause();
+  };
+
+  const playPause = () => {
+    if (!audioPlayer.current) return;
+    const player = audioPlayer.current;
+    if (!player.paused) player.pause();
+    else player.play();
   };
 
   const stopPlayer = () => {
@@ -71,12 +75,8 @@ export default function MusicBar({
     });
   };
 
-  const listPlayer = (id: string) => {
-    setSearchParams((prev) => {
-      prev.set("selected", id);
-      return prev;
-    });
-    playPause();
+  const openSmallBar = () => {
+    if (audioPlayer.current?.paused) playPause();
   };
 
   useEffect(() => {
@@ -104,16 +104,17 @@ export default function MusicBar({
     return () => player.removeEventListener("timeupdate", currentPlayer);
   }, []);
 
-  // useEffect(() => {
-  //   if (!isPlaying && audioPlayer.current) {
-  //     playPause();
-  //   }
-  // }, [isOpen, audioPlayer]);
+  useEffect(() => {
+    setSRC();
+    if (selectedEpisode && audioPlayer.current) {
+      playPause();
+    }
+  }, [selectedEpisode, audioPlayer]);
 
   return (
     <div
       onClick={() => !isOpen && toggleOpen()}
-      className={`sticky bottom-0 left-0 w-full rounded-t-3xl bg-[#db70fc] transition-all ${isOpen ? "pb-5 " : "h-[84px] lg:h-0"}`}
+      className={`fixed bottom-0 left-0 w-full rounded-t-3xl bg-[#db70fc] transition-all ${isOpen ? "h-[calc(100%-3.5rem)] pb-5" : "h-[84px] lg:h-0"}`}
     >
       <div className={`${!isOpen ? "block" : "hidden"}`}>
         <div className="grid grid-cols-[48px,auto,32px] items-center gap-2 px-5 py-4 lg:hidden">
@@ -131,16 +132,12 @@ export default function MusicBar({
           </div>
 
           <button
-            onClick={() => {
-              if (isPlaying) {
-                toggleOpen();
-                playPause();
-              } else {
-                openSmallBar();
-              }
+            onClick={(e) => {
+              playPause();
+              e.stopPropagation();
             }}
           >
-            {isPlaying ? <Pause /> : <PlayIcon />}
+            {!audioPlayer.current?.paused ? <Pause /> : <PlayIcon />}
           </button>
         </div>
       </div>
@@ -159,8 +156,8 @@ export default function MusicBar({
         <div className=" relative flex-1 overflow-scroll lg:mx-auto lg:grid lg:max-w-[992px] lg:grid-cols-2 lg:pt-12">
           <button
             onClick={() => {
-              stopPlayer();
               toggleOpen();
+              stopPlayer();
             }}
             className="absolute right-0 top-6  hidden h-[40px] w-[40px] items-center justify-center rounded-full bg-[#362d31] lg:flex"
           >
@@ -185,7 +182,7 @@ export default function MusicBar({
               alt="banner"
               className="mx-auto mt-4 h-[192px] w-[192px] rounded-2xl"
             />
-            <div className="relative  mt-6">
+            <div className="relative mt-6">
               <div className="absolute -top-[4px] left-0 z-10 h-[32px] w-[40px] bg-[linear-gradient(90deg,rgb(218,113,255),rgba(218,113,255,0))]"></div>
               <div className="overflow-hidden">
                 <div className="sliding  flex cursor-pointer">
@@ -235,7 +232,7 @@ export default function MusicBar({
               </button>
 
               <button onClick={playPause}>
-                {isPlaying ? (
+                {!audioPlayer.current?.paused ? (
                   <div className="item-center flex h-[56px] w-[56px] justify-center rounded-full bg-[#1c1f23]">
                     <Pause className="w-[40px] fill-[#db70fc]" />
                   </div>

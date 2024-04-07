@@ -17,6 +17,7 @@ export const links: LinksFunction = () => [
 ];
 
 export function Layout({ children }: Readonly<{ children: React.ReactNode }>) {
+  // console.error(error);
   return (
     <html lang="en">
       <head>

@@ -18,7 +18,7 @@ export default function Index() {
 
   return (
     <main
-      className={`relative h-screen min-h-screen w-screen overflow-scroll bg-[#db70fc] lg:focus-within:bg-[#db70fc] ${!isFocused && "lg:bg-white"}`}
+      className={`no-scrollbar relative h-screen min-h-screen w-screen overflow-scroll bg-[#db70fc] lg:focus-within:bg-[#db70fc] ${!isFocused && "lg:bg-white"} overflow-hidden`}
     >
       <div className="fixed left-0 top-0 px-5 py-3.5">
         <p className="text-2xl font-black text-[#1b1f23]">pod.link</p>
@@ -76,7 +76,7 @@ export default function Index() {
         </div>
       </div>
       {!isFocused && (
-        <div className="absolute bottom-0 ml-[32px] w-[calc(100%-64px)] max-w-full pb-10 lg:w-full">
+        <div className="absolute bottom-0  flex w-full max-w-full flex-col justify-center pb-10 lg:w-full ">
           <FooterIcon className="mx-auto w-[70px] lg:w-[100px]" />
 
           <div className="mt-2 flex justify-center gap-3 font-thin">

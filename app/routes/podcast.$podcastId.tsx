@@ -1,4 +1,10 @@
-import { Link, useLoaderData, useParams } from "@remix-run/react";
+import {
+  isRouteErrorResponse,
+  Link,
+  useLoaderData,
+  useParams,
+  useRouteError,
+} from "@remix-run/react";
 import { useState } from "react";
 import { json, LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 
@@ -6,11 +12,12 @@ import http from "~/helper/http";
 import { IEpisode, IPodcast } from "~/types/index.types";
 import { formatDate } from "~/helper/formatTime";
 
-import { SearchIcon } from "~/assets/icons/icons";
 import Share from "~/components/details/Share";
 import Search from "~/components/details/Search";
 import { Icons } from "~/constant/socials";
 import MusicBar from "~/components/details/MusicBar";
+
+import { SearchIcon } from "~/assets/icons/icons";
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
   const podcastId = params.podcastId;
@@ -22,19 +29,34 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     );
     const podcast = response.data.feed;
 
+    if (
+      !podcast ||
+      (Array.isArray(podcast) && !(podcast as unknown as Array<unknown>).length)
+    ) {
+      throw new Error("Podcast not found");
+    }
+
     const episodeRes = await http.get<{
       items: IEpisode[];
       count: number;
-      query: any;
+      query: Record<string, string>;
     }>(`/episodes/byfeedid?id=${podcastId}&pretty`);
     const episodes = episodeRes.data.items;
 
     return json({ podcast, episodes, origin: url.origin });
   } catch (error: any) {
-    console.log(error);
+    if (error.message === "Podcast not found") {
+      throw new Response(null, {
+        status: 404,
+        statusText: "Podcast not found",
+      });
+    } else {
+      throw new Response(null, {
+        status: 500,
+        statusText: "Something went wrong",
+      });
+    }
   }
-
-  return json({ podcast: null, episodes: [], origin: url.origin });
 }
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -67,9 +89,10 @@ export default function Index() {
   const toggleFullScreen = () => {
     setShowFullScreen((iso) => !iso);
   };
+
   return (
     <main className="flex h-screen min-h-screen flex-col">
-      <nav className="relative flex items-center justify-between bg-white px-4 py-4">
+      <nav className="fixed flex w-full items-center justify-between bg-white px-4 py-4">
         <p className="text-lg font-semibold">pod.link/{podcastId}</p>
 
         <div className="flex gap-3">
@@ -101,12 +124,11 @@ export default function Index() {
         />
       </nav>
       <Search toggleOpen={toggleSearch} isOpen={openSearch} />
-
       <div
-        className={` grid flex-1 grid-rows-[250px,auto] lg:mx-auto lg:max-w-[992px] lg:grid-cols-[304px,auto] lg:grid-rows-1 lg:gap-[48px] ${showFullScreen ? "overflow-hidden" : "overflow-scroll pt-5"}`}
+        className={` grid flex-1 grid-rows-[250px,auto] pb-28 pt-24 lg:mx-auto lg:max-w-[992px] lg:grid-cols-[304px,auto] lg:grid-rows-1 lg:gap-[48px] lg:pt-20 ${showFullScreen ? "overflow-hidden" : " pt-5"}`}
       >
         <div className="flex justify-center">
-          <div className="h-[224px] w-[224px] overflow-hidden rounded-3xl lg:h-[304px] lg:w-[304px]">
+          <div className="h-[224px] w-[224px] overflow-hidden rounded-3xl lg:sticky lg:top-20 lg:h-[304px] lg:w-[304px]">
             <img src={podcast?.image} alt="banner" className="object-fill" />
           </div>
         </div>
@@ -137,7 +159,7 @@ export default function Index() {
 
           <h4 className="mt-4 text-lg font-semibold">Episodes</h4>
           <div>
-            {episodes.map((episode) => (
+            {episodes?.map((episode) => (
               <div
                 key={episode?.id}
                 className="mt-4 grid w-[90%] grid-cols-[40px,auto] items-start lg:mt-4 lg:gap-3"
@@ -183,5 +205,25 @@ export default function Index() {
         podcast={podcast as IPodcast}
       />
     </main>
+  );
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+  return (
+    <div className="flex min-h-screen w-full items-center justify-center">
+      <div>
+        <h1>
+          {isRouteErrorResponse(error)
+            ? `${error.status} ${error.statusText}`
+            : error instanceof Error
+              ? error.message
+              : "Unknown Error"}
+        </h1>
+        <Link className="mt-4 text-red-500 underline" to={"/"}>
+          Back to home
+        </Link>
+      </div>
+    </div>
   );
 }
